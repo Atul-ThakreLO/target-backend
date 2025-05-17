@@ -1,0 +1,323 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+// supabase config
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Class {
+  id              String            @id @default(uuid())
+  name            String            @unique
+  isActive        Boolean           @default(true)
+  StudentInfo     StudentInfo[]
+  StudentFeesPaid StudentFeesPaid[]
+  Subjects        Subjects[]
+  notes           Notes[]
+  papers          Papers[]
+  testPapers      TestPaper[]
+  batches         Batches[]
+  assignments     Assignments[]
+}
+
+model School {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  isActive     Boolean       @default(true)
+  studentsInfo StudentInfo[]
+}
+
+model Subjects {
+  id               String              @id @default(uuid())
+  name             String
+  class_id         String
+  isActive         Boolean             @default(true)
+  class            Class               @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  StudentSubjects  StudentSubjects[]
+  notes            Notes[]
+  papers           Papers[]
+  testPaper        TestPaper[]
+  event_testPapers Events_TestPapers[]
+  assignments      Assignments[]
+
+  @@unique([name, class_id])
+}
+
+model Student {
+  id                  String                @id @default(uuid())
+  email               String                @unique
+  password            String
+  StudentInfo         StudentInfo?
+  StudentFeesPaid     StudentFeesPaid[]
+  StudentSubjects     StudentSubjects[]
+  TestPaperStudents   TestPaperStudents[]
+  CompletedAssignment CompletedAssignment[]
+  Result              Result[]
+}
+
+model StudentInfo {
+  id           String   @id @default(uuid())
+  student_name String
+  mobile       String
+  avtar_url    String
+  public_id    String
+  isActive     Boolean  @default(true)
+  student_id   String   @unique
+  student      Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  class_id     String
+  class        Class    @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  batch_id     String?
+  batches      Batches? @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+  school_id    String?
+  school       School?  @relation(fields: [school_id], references: [id], onDelete: Cascade)
+}
+
+model StudentFeesPaid {
+  id         String   @id @default(uuid())
+  student_id String
+  student    Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  class_id   String
+  class      Class    @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  amount     Decimal
+  date       DateTime @default(now())
+}
+
+model StudentSubjects {
+  id         String   @id @default(uuid())
+  student_id String
+  student    Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  subject_id String
+  subject    Subjects @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+
+  @@unique([student_id, subject_id])
+}
+
+// ////////////////////////////////////Teacher/////////////////////////////
+enum Role {
+  TEACHER
+  MANAGEMENT
+}
+
+model JobPostings {
+  id              String            @id @default(uuid())
+  title           String
+  role            Role
+  description     String
+  qualification   String
+  salary          String
+  experience      String
+  date            DateTime          @default(now())
+  jobApplications JobApplications[]
+}
+
+model JobApplications {
+  id               String      @id @default(uuid())
+  job_id           String
+  job              JobPostings @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  name             String
+  email            String
+  phone            String
+  resume_url       String?
+  resume_public_id String?
+  date             DateTime    @default(now())
+}
+
+model OfficeStaff {
+  id                String              @id @default(uuid())
+  email             String              @unique
+  password          String
+  OfficeStaffInfo   OfficeStaffInfo?
+  events_testPapers Events_TestPapers[]
+  notices           Notices[]
+  assignments       Assignments[]
+  notes             Notes[]
+  papers            Papers[]
+  testpapers        TestPaper[]
+}
+
+model OfficeStaffInfo {
+  id              String      @id @default(uuid())
+  office_staff_id String      @unique
+  OfficeStaff     OfficeStaff @relation(fields: [office_staff_id], references: [id], onDelete: Cascade)
+  name            String
+  mobile          String
+  role            Role
+  subjects        String?
+  qualification   String
+  avtar_url       String
+  public_id       String
+  isVerified      Boolean     @default(false)
+  isAdmin         Boolean     @default(false)
+  hire_date       DateTime    @default(now())
+}
+
+model Notices {
+  id              String      @id @default(uuid())
+  title           String
+  content         String      @db.Text
+  posting_date    DateTime    @default(now())
+  expiry_date     DateTime
+  isEdited        Boolean     @default(false)
+  isHighlighted   Boolean     @default(false)
+  isAdmin         Boolean     @default(false)
+  office_staff_id String
+  OfficeStaff     OfficeStaff @relation(fields: [office_staff_id], references: [id], onDelete: Cascade)
+}
+
+model Events_TestPapers {
+  id              String      @id @default(uuid())
+  subject_id      String?
+  subject         Subjects?   @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+  topic           String?
+  totalMarks      Int?
+  duration        DateTime?
+  content         String?     @db.Text
+  date            DateTime
+  time            String
+  office_staff_id String
+  officeStaff     OfficeStaff @relation(fields: [office_staff_id], references: [id], onDelete: Cascade)
+}
+
+// ------------------------------Batches Etc----------------------------------------
+model Notes {
+  id              String         @id @default(uuid())
+  title           String
+  url             String
+  public_id       String
+  subject_id      String
+  class_id        String
+  office_staff_id String?
+  officeStaff     OfficeStaff?   @relation(fields: [office_staff_id], references: [id], onDelete: Cascade)
+  date            DateTime       @default(now())
+  class           Class          @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  subject         Subjects       @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+  batchNotes      BatchesNotes[]
+
+  @@unique([title, subject_id])
+}
+
+model Papers {
+  id              String       @id @default(uuid())
+  title           String
+  url             String
+  public_id       String
+  class_id        String
+  class           Class        @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  test_id         String?      @unique
+  test            TestPaper?   @relation(fields: [test_id], references: [id], onDelete: Cascade)
+  subject_id      String
+  subject         Subjects     @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+  office_staff_id String?
+  officeStaff     OfficeStaff? @relation(fields: [office_staff_id], references: [id], onDelete: Cascade)
+  date            DateTime     @default(now())
+
+  @@unique([title, subject_id])
+}
+
+model TestPaper {
+  id                String              @id @default(uuid())
+  title             String
+  papers            Papers?
+  class_id          String
+  class             Class               @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  batch_id          String
+  batch             Batches             @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+  subject_id        String
+  subject           Subjects            @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+  TestPaperStudents TestPaperStudents[] @relation("TestPaperStudents")
+  office_staff_id   String?
+  officeStaff       OfficeStaff?        @relation(fields: [office_staff_id], references: [id], onDelete: Cascade)
+  totalMarks        Decimal?
+  date              DateTime            @default(now())
+}
+
+model TestPaperStudents {
+  id            String    @id @default(uuid())
+  student_id    String
+  student       Student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  test_paper_id String
+  test_paper    TestPaper @relation(name: "TestPaperStudents", fields: [test_paper_id], references: [id], onDelete: Cascade)
+  marks         Decimal
+
+  @@unique([student_id, test_paper_id])
+}
+
+model Batches {
+  id          String         @id @default(uuid())
+  name        String         @unique
+  isActive    Boolean        @default(true)
+  date        DateTime       @default(now())
+  class_id    String
+  class       Class          @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  students    StudentInfo[]
+  batchNotes  BatchesNotes[]
+  testPapers  TestPaper[]
+  assignments Assignments[]
+}
+
+model BatchesNotes {
+  id       String  @id @default(uuid())
+  note_id  String
+  note     Notes   @relation(fields: [note_id], references: [id], onDelete: Cascade)
+  batch_id String
+  batch    Batches @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+
+  @@unique([note_id, batch_id])
+}
+
+model Assignments {
+  id                  String                @id @default(uuid())
+  title               String
+  class_id            String
+  class               Class                 @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  subject_id          String
+  subject             Subjects              @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+  batch_id            String
+  batch               Batches               @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+  staff_id            String
+  staff               OfficeStaff           @relation(fields: [staff_id], references: [id], onDelete: Cascade)
+  pdf_url             String
+  public_id           String
+  date                DateTime              @default(now())
+  completedAssignment CompletedAssignment[]
+}
+
+model CompletedAssignment {
+  id          String      @id @default(uuid())
+  assi_id     String
+  assignments Assignments @relation(fields: [assi_id], references: [id], onDelete: Cascade)
+  student_id  String
+  student     Student     @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  pdf_url     String
+  public_id   String
+  date        DateTime    @default(now())
+
+  @@unique([assi_id, student_id])
+}
+
+model Result {
+  id            String  @id @default(uuid())
+  student_id    String
+  student       Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  marks         Json
+  total_percent Decimal
+}
