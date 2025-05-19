@@ -204,13 +204,15 @@ class NotesServices {
   }
 
   async getProvidedNotes(query) {
+    const {batch_id, ...oquery} = query
     try {
       const response = prisma.batchesNotes.findMany({
         where: {
           note: {
-            ...query,
+            ...oquery,
           },
           batch: {
+            id: batch_id,
             isActive: true,
           },
         },
@@ -308,8 +310,6 @@ class NotesServices {
           },
         },
       });
-      console.log(response);
-
       return response;
     } catch (err) {
       console.log(err);

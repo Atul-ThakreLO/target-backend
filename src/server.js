@@ -22,7 +22,7 @@ import cors from "cors";
 const app = express();
 
 dotenv.config({ path: "./.env" });
-const PORT = process.env.SERVER_PORT;
+const PORT = process.env.PORT;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -30,7 +30,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend URL without trailing slash
+    origin: process.env.FRONT_END_URL || "http://localhost:5173", // frontend URL without trailing slash
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -51,25 +51,6 @@ app.use(marksRouter);
 app.use(noticeRouter);
 app.use(assignmentRouter);
 app.use(resultRouter);
-
-// app.post("/post", async (req, res, next) => {
-//   try {
-//     const response = await resultServices.createResult(req.body);
-//     res.status(200).json(response);
-//   } catch (err) {
-//     console.log(err);
-//     next(err);
-//   }
-// });
-// app.get("/get", async (req, res, next) => {
-//   try {
-//     const response = await resultServices.getResult();
-//     res.status(200).json(response);
-//   } catch (err) {
-//     console.log(err);
-//     next(err);
-//   }
-// });
 
 // Error Handler---------------
 app.use(handleError);

@@ -265,6 +265,7 @@ model Batches {
   id          String         @id @default(uuid())
   name        String         @unique
   isActive    Boolean        @default(true)
+  session     String?
   date        DateTime       @default(now())
   class_id    String
   class       Class          @relation(fields: [class_id], references: [id], onDelete: Cascade)

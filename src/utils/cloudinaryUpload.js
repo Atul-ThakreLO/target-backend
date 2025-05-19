@@ -1,4 +1,5 @@
 import cloudinary from "../config/cloudinary.config.js";
+import fs from "fs";
 // import { v2 as cloudinary } from "cloudinary";
 
 export const cloudinaryUpload = async (file, name) => {
@@ -32,6 +33,8 @@ export const cloudinaryUpload = async (file, name) => {
     }
   } catch (err) {
     throw err;
+  } finally {
+    fs.unlinkSync(file.path);
   }
 };
 

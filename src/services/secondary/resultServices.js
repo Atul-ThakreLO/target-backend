@@ -35,9 +35,7 @@ class ResultServices {
                 id: id,
               },
               batches: {
-                name: {
-                  contains: String(session),
-                },
+                session: session,
               },
             },
           },
@@ -63,9 +61,7 @@ class ResultServices {
             {
               StudentInfo: {
                 batches: {
-                  name: {
-                    contains: session,
-                  },
+                  session: session,
                 },
               },
             },
